@@ -36,12 +36,12 @@ class RCareStorm(RCareWorld):
         init_joint_state = [1.00, -1.0, 0.00, -2.0, 0.00, 1.57, 0.78]
         self.robot.setJointPositionsDirectly(init_joint_state)
 
-        self.sphere_1 = env.create_object(id=10001, name="Sphere 1", is_in_scene=False)
-        self.cube_1 = env.create_object(id=20001, name="Cube 1", is_in_scene=False)
-        self.cube_2 = env.create_object(id=20002, name="Cube 2", is_in_scene=False)
-        self.cube_3 = env.create_object(id=20003, name="Cube 3", is_in_scene=False)
+        self.sphere_1 = self.create_object(id=10001, name="Sphere 1", is_in_scene=False)
+        self.cube_1   = self.create_object(id=20001, name="Cube 1", is_in_scene=False)
+        self.cube_2   = self.create_object(id=20002, name="Cube 2", is_in_scene=False)
+        self.cube_3   = self.create_object(id=20003, name="Cube 3", is_in_scene=False)
 
-        self.cube_ref = env.create_object(id=30001, name="Cube 3", is_in_scene=False)
+        self.cube_ref = self.create_object(id=30001, name="Cube 3", is_in_scene=False)
 
         self.sphere_1.load()
         self.cube_1.load()
