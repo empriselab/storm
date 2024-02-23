@@ -27,7 +27,23 @@ class RCareStorm(RCareWorld):
             base_pos=[0, 0, 0],
         )
 
-        #Pranav TODO : Insert any obstacles here for test env!!!
+        self.sphere_1 = env.create_object(id=10001, name="Sphere 1", is_in_scene=False)
+        self.cube_1 = env.create_object(id=20001, name="Cube 1", is_in_scene=False)
+        self.cube_2 = env.create_object(id=30002, name="Cube 2", is_in_scene=False)
+        self.cube_3 = env.create_object(id=30003, name="Cube 3", is_in_scene=False)
+
+        self.sphere_1.load()
+        self.cube_1.load()
+        self.cube_2.load()
+        self.cube_3.load()
+
+        #positions after coordinate transformation from IsaacSim to Unity
+        #original position from collision_primitives_3d.yml
+        #rotation quaternion does not change after rotation around axis
+        self.sphere_1.setTransform(position=[-0.4, 0.1, 0.4],scale=[0.1, 0.1, 0.1])
+        self.cube_1.setTransform(position=[-0.2, 0.2, 0.4],scale=[0.3, 0.1, 0.4])
+        self.cube_2.setTransform(position=[0.3, 0.2, 0.4],scale=[0.3, 0.1, 0.5])
+        self.cube_3.setTransform(position=[0.0, -0.1, 0.0],scale=[2.0, 2.0, 0.2])
 
         print("Initialized RCareStorm object!")
         
