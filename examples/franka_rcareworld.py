@@ -60,6 +60,11 @@ from storm_kit.util_file import get_mpc_configs_path as mpc_configs_path
 
 from storm_kit.differentiable_robot_model.coordinate_transform import quaternion_to_matrix, CoordinateTransform
 from storm_kit.mpc.task.reacher_task import ReacherTask
+
+from scipy.spatial.transform import Rotation as R
+
+from rcareworld.env import RCareStorm
+
 np.set_printoptions(precision=2)
 
 def mpc_robot_interactive(args, sim_params):
@@ -68,7 +73,10 @@ def mpc_robot_interactive(args, sim_params):
     task_file = args.robot + '_reacher.yml'
     world_file = 'collision_primitives_3d.yml'
 
-    
+    #define transformation frames from Unity to Storm
+    storm2unity_rot = np.array([[0, 0, 1], [-1, 0, 0], [0, 1, 0]])
+    unity2storm_rot = np.linalg.inv(storm2unity_rot)
+
     # gym = gym_instance.gym
     # sim = gym_instance.sim
     # world_yml = join_path(get_gym_configs_path(), world_file)
@@ -139,6 +147,7 @@ def mpc_robot_interactive(args, sim_params):
     
     # table_dims = np.ravel([0.3,0.1,0.8])
     
+    env = RCareStorm()
 
     # get camera data:
     mpc_control = ReacherTask(task_file, robot_file, world_file, tensor_args)
@@ -152,10 +161,10 @@ def mpc_robot_interactive(args, sim_params):
 
     mpc_tensor_dtype = {'device':device, 'dtype':torch.float32}
 
-    tgt_p = env._get_kinova_target_ee_pose()
-    g_pos_ = tgt_p['position']
-    transform = np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])
-    g_pos = np.matmul(transform, g_pos_)
+    tgt_p = env.get_target_eef_pose()
+    
+    #convert eef position in Unity to Storm
+    g_pos = np.matmul(unity2storm_rot, tgt_p['position'])
 
     # franka_bl_state = np.array([-0.3, 0.3, 0.2, -2.0, 0.0, 2.4,0.0,
     #                             0.0,0.0,0.0,0.0,0.0,0.0,0.0])
@@ -236,12 +245,12 @@ def mpc_robot_interactive(args, sim_params):
 
     while True:
         try:
-            tgt_p = env._get_kinova_target_ee_pose()
+            tgt_p = env.get_target_eef_pose()
             print("Input Euler:",tgt_p['orientation'])
-            g_pos_ = tgt_p['position']
-            transform = np.array([[0, 0, 1], [-1, 0, 0], [0, 1, 0]])
+            # g_pos_ = tgt_p['position']
+            # transform = np.array([[0, 0, 1], [-1, 0, 0], [0, 1, 0]])
             # transform = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-            g_pos = np.matmul(transform, g_pos_)
+            g_pos = np.matmul(unity2storm_rot, tgt_p['position'])
 
             storm_frame_orientation = [-tgt_p['orientation'][2], tgt_p['orientation'][0], -tgt_p['orientation'][1]]
             print("Updated Euler:",storm_frame_orientation)
@@ -293,10 +302,10 @@ def mpc_robot_interactive(args, sim_params):
             q_des = np.degrees((q_des + 2*np.pi) % (2*np.pi))
            
             t_now = time.time()
-            env._set_kinova_joints(joint_positions=q_des)
+            env.set_robot_joints(joint_positions=q_des)
 
             current_state = command
-            i += 1
+            # i += 1
         except KeyboardInterrupt:
             print('Closing')
 
