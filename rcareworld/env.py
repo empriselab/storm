@@ -25,43 +25,59 @@ class RCareStorm(RCareWorld):
         self.robot_id = 639787
         self.robot_dof = 7
 
-        # Create robot object
-        self.robot = self.create_robot(
-            id=self.robot_id, 
+        sphere_1 = self.create_object(id=10001, name="Sphere", is_in_scene=True)
+        sphere_1.setTransform(position=[0.4, 0.1, 0.4],scale=[0.2, 0.2, 0.2])
+
+        cube_1 = self.create_object(id=20001, name="Cube", is_in_scene=False)
+        cube_1.load()
+        cube_1.setTransform(position=[0.4, 0.2, 0.2],scale=[0.3, 0.4, 0.1])
+
+        cube_2 = self.create_object(id=20002, name="Cube", is_in_scene=False)
+        cube_2.load()
+        cube_2.setTransform(position=[ 0.4,  0.2, -0.3],scale=[0.3, 0.5, 0.1])
+
+        cube_3 = self.create_object(id=20003, name="Cube", is_in_scene=False)
+        cube_3.load()
+        cube_3.setTransform(position=[ 0. , -0.1,  0. ],scale=[2.0, 0.2, 2.0])
+
+        #define pose of reference cube
+        cube_ref_pose = [0.3, 0.5, 0.0]
+
+        cube_ref = self.create_object(id=30001, name="Cube", is_in_scene=False)
+        cube_ref.load()
+        cube_ref.setTransform(position=cube_ref_pose,scale=[0.01, 0.01, 0.01])
+
+        robot_id = 639787
+        robot_dof = 7
+        robot = self.create_robot(
+            id=robot_id, 
             gripper_list=["6397870"], 
             robot_name="franka_panda",
             base_pos=[0, 0, 0],
         )
 
-        init_joint_state = [1.00, -1.0, 0.00, -2.0, 0.00, 1.57, 0.78]
-        self.robot.setJointPositionsDirectly(init_joint_state)
-
-        self.sphere_1 = self.create_object(id=10001, name="Sphere 1", is_in_scene=False)
-        self.cube_1   = self.create_object(id=20001, name="Cube 1", is_in_scene=False)
-        self.cube_2   = self.create_object(id=20002, name="Cube 2", is_in_scene=False)
-        self.cube_3   = self.create_object(id=20003, name="Cube 3", is_in_scene=False)
-
-        self.cube_ref = self.create_object(id=30001, name="Cube 3", is_in_scene=False)
-
-        self.sphere_1.load()
-        self.cube_1.load()
-        self.cube_2.load()
-        self.cube_3.load()
-        self.cube_ref.load()
-
-        #positions after coordinate transformation from IsaacSim to Unity
-        #original position from collision_primitives_3d.yml
-        #rotation quaternion does not change after rotation around axis
-        self.sphere_1.setTransform(position=[-0.4, 0.1, 0.4],scale=[0.1, 0.1, 0.1])
-        self.cube_1.setTransform(position=[-0.2, 0.2, 0.4],scale=[0.3, 0.1, 0.4])
-        self.cube_2.setTransform(position=[0.3, 0.2, 0.4],scale=[0.3, 0.1, 0.5])
-        self.cube_3.setTransform(position=[0.0, -0.1, 0.0],scale=[2.0, 2.0, 0.2])
-
-        self.cube_ref.setTransform(position=[-0.3, 0.5, 0.0],scale=[0.01, 0.01, 0.01])
-
         print("Initialized RCareStorm object!")
 
-        self._step()
+        self.stepSeveralSteps(50)
+
+        self.instance_channel.set_action(
+            "IKTargetDoMove",
+            id=639787,
+            position=cube_ref_pose,
+            duration=0,
+            speed_based=False,
+        )
+
+        print("Moved robot to reference cube!")
+
+    def get_robot_joint_positions(self):
+        joint_positions = self.instance_channel.data[self.robot_id]['joint_positions']
+
+    def get_robot_joint_velocities(self):
+        return self.instance_channel.data[self.robot_id]['joint_velocities']
+
+    def get_robot_joint_accelerations(self):
+        return self.instance_channel.data[self.robot_id]['joint_accelerations']
 
     def get_target_eef_pose(self):
         target_pose = {}
@@ -69,7 +85,7 @@ class RCareStorm(RCareWorld):
         target_pose['orientation'] = self.instance_channel.data[30001]['rotation']
         return target_pose
         
-    def set_robot_joints(self, joint_positions=None, joint_velocities=None, joint_accelerations=None):
+    def set_robot_joint_position(self, joint_positions=None, joint_velocities=None, joint_accelerations=None):
         if joint_positions is not None:
             self.instance_channel.set_action(
                 'SetJointPositionDirectly',
