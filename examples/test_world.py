@@ -1,7 +1,27 @@
 from pyrcareworld.envs import RCareWorld
 
-# Create robot object
+# Create RCareWorld object
 env = RCareWorld()
+
+sphere_1 = env.create_object(id=10001, name="Sphere", is_in_scene=True)
+sphere_1.setTransform(position=[0.4, 0.1, 0.4],scale=[0.2, 0.2, 0.2])
+
+cube_1   = env.create_object(id=20001, name="Cube", is_in_scene=False)
+cube_1.load()
+cube_1.setTransform(position=[0.4, 0.2, 0.2],scale=[0.3, 0.4, 0.1])
+
+cube_2   = env.create_object(id=20002, name="Cube", is_in_scene=False)
+cube_2.load()
+cube_2.setTransform(position=[ 0.4,  0.2, -0.3],scale=[0.3, 0.5, 0.1])
+
+cube_3   = env.create_object(id=20003, name="Cube", is_in_scene=False)
+cube_3.load()
+cube_3.setTransform(position=[ 0. , -0.1,  0. ],scale=[2.0, 0.2, 2.0])
+
+cube_ref = env.create_object(id=30001, name="Cube", is_in_scene=False)
+cube_ref.load()
+cube_ref.setTransform(position=[0.3, 0.5, 0.0],scale=[0.01, 0.01, 0.01])
+
 
 robot_id = 639787
 robot_dof = 7
@@ -14,26 +34,6 @@ robot = env.create_robot(
 
 for i in range(100):
     env.step()
-
-sphere_1 = env.create_object(id=10001, name="Sphere", is_in_scene=False)
-sphere_1.load()
-sphere_1.setTransform(position=[-0.4, 0.1, 0.4],scale=[0.1, 0.1, 0.1])
-
-cube_1   = env.create_object(id=20001, name="Cube", is_in_scene=False)
-cube_1.load()
-cube_1.setTransform(position=[-0.2, 0.2, 0.4],scale=[0.3, 0.1, 0.4])
-
-cube_2   = env.create_object(id=20002, name="Cube", is_in_scene=False)
-cube_2.load()
-cube_2.setTransform(position=[0.3, 0.2, 0.4],scale=[0.3, 0.1, 0.5])
-
-cube_3   = env.create_object(id=20003, name="Cube", is_in_scene=False)
-cube_3.load()
-cube_3.setTransform(position=[0.0, -0.1, 0.0],scale=[2.0, 2.0, 0.2])
-
-cube_ref = env.create_object(id=30001, name="Cube", is_in_scene=False)
-cube_ref.load()
-cube_ref.setTransform(position=[-0.3, 0.5, 0.0],scale=[0.01, 0.01, 0.01])
 
 # #positions after coordinate transformation from IsaacSim to Unity
 # #original position from collision_primitives_3d.yml
