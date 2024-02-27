@@ -143,8 +143,8 @@ def mpc_robot_interactive(args, sim_params):
     log_traj = {'q':[], 'q_des':[], 'qdd_des':[], 'qd_des':[],
                 'qddd_des':[]}
 
-    q_des = np.zeros(7)
-    qd_des = np.zeros(7)
+    q_des = np.zeros(env.robot_dof)
+    qd_des = np.zeros(env.robot_dof)
     t_step = 0
 
     g_pos = np.ravel(mpc_control.controller.rollout_fn.goal_ee_pos.cpu().numpy())
@@ -164,15 +164,15 @@ def mpc_robot_interactive(args, sim_params):
             # transform = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
             g_pos = np.matmul(unity2storm_rot, tgt_p['position'])
 
-            # storm_frame_orientation = [-tgt_p['orientation'][2], tgt_p['orientation'][0], -tgt_p['orientation'][1]]
+            storm_frame_orientation = [-tgt_p['orientation'][2], tgt_p['orientation'][0], -tgt_p['orientation'][1]]
             
-            #trying this for now
-            storm_frame_orientation = tgt_p['orientation']
+            # #trying this for now
+            # storm_frame_orientation = tgt_p['orientation']
 
             print("Updated Euler:",storm_frame_orientation)
             g_q = R.from_euler('xyz', storm_frame_orientation, degrees=True).as_quat()
             storm_q = [g_q[3], g_q[0], g_q[1], g_q[2]]
-            goal_des = np.concatenate((q_des, np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])))
+            goal_des = np.concatenate((q_des, np.zeros(env.robot_dof)))
             # mpc_control.update_params(goal_ee_pos=g_pos, goal_ee_quat=g_q)
             print("Calling update params once.")
             mpc_control.update_params(goal_ee_pos=g_pos, goal_ee_quat=storm_q, goal_state = goal_des)
@@ -181,13 +181,11 @@ def mpc_robot_interactive(args, sim_params):
             print("Input Goal Position:",g_pos)
             print("Input Goal Orientation:",storm_q)
             
-            
-            q_des = (np.radians(np.array(env._get_kinova_joint_pos()) % 360.))
-            print(q_des)
-            qd_des = (np.radians(np.array(env._get_kinova_joint_vel()) % 360.))
-            qdd_des = np.array(env._get_kinova_joint_acc()) % (2*np.pi)
+            q_des = (np.radians(np.array(env.get_robot_joint_positions()) % 360.))
+            qd_des = (np.radians(np.array(env.get_robot_joint_velocities()) % 360.))
+            # qdd_des = np.array(env.get_robot_joint_accelerations()) % (2*np.pi)
             # qd_des = np.array(env._get_kinova_joint_vel(315892))
-            for i in range(6):
+            for i in range(7):
                 if q_des[i] > np.pi:
                     q_des[i] = q_des[i] - (2 * np.pi)
             
@@ -218,7 +216,7 @@ def mpc_robot_interactive(args, sim_params):
             q_des = np.degrees((q_des + 2*np.pi) % (2*np.pi))
            
             t_now = time.time()
-            env.set_robot_joints(joint_positions=q_des)
+            env.set_robot_joint_position(joint_positions=q_des)
 
             current_state = command
             # i += 1
