@@ -65,6 +65,7 @@ from storm_kit.mpc.task.reacher_task import ReacherTask
 from scipy.spatial.transform import Rotation as R
 
 from rcareworld.env import RCareStorm
+from rcareworld.utils import storm2unity, unity2storm
 
 np.set_printoptions(precision=2)
 
@@ -73,12 +74,6 @@ def mpc_robot_interactive(args, sim_params):
     robot_file = args.robot + '.yml'
     task_file = args.robot + '_reacher.yml'
     world_file = 'collision_primitives_3d.yml'
-
-    # transformation from Storm to Unity is : rotate -90 deg about x, then mirror img abot xy axis 
-    # (vice versa also works somehow)
-    # TODO Pranav : verify this
-    unity2storm_rot = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
-    storm2unity_rot = np.linalg.inv(unity2storm_rot)
 
     env = RCareStorm()
 
@@ -114,11 +109,8 @@ def mpc_robot_interactive(args, sim_params):
     mpc_tensor_dtype = {'device':device, 'dtype':torch.float32}
 
     tgt_p = env.get_target_eef_pose()
-    g_pos_ = tgt_p['position']
-    g_pos = np.matmul(unity2storm_rot, g_pos_)
-
-    # Rajat TODO: Verify rotation convention
-    g_q = R.from_euler('yxz', tgt_p['orientation'], degrees=True).as_quat() 
+    g_pos = unity2storm(position=tgt_p['position'])
+    g_q    = unity2storm(orientation=tgt_p['orientation']) 
     
     ee_error = 10.0
     j = 0
@@ -144,7 +136,7 @@ def mpc_robot_interactive(args, sim_params):
     log_traj = {'q':[], 'q_des':[], 'qdd_des':[], 'qd_des':[],
                 'qddd_des':[]}
 
-    q_des = np.zeros(env.robot_dof)
+    q_des = np.array(env.get_robot_joint_positions())
     qd_des = np.zeros(env.robot_dof)
     t_step = 0
 
@@ -158,24 +150,22 @@ def mpc_robot_interactive(args, sim_params):
 
     while True:
         try:
+            #Step the environment
+            env.step()
+            
+            #Find goal position
             tgt_p = env.get_target_eef_pose()
-            # print("Input Euler:",tgt_p['orientation'])
-            # g_pos_ = tgt_p['position']
-            # transform = np.array([[0, 0, 1], [-1, 0, 0], [0, 1, 0]])
-            # transform = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-            g_pos = np.matmul(unity2storm_rot, tgt_p['position'])
-            print(g_pos)
 
-            # Rotations are intrinsic since they are around body axes , so capital letters. 
-            # Source : https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.from_euler.html
+            #update goal position only if it has moved more than a threshold
+            #Pranav TODO : check thresholds
+            if(np.linalg.norm(g_pos - unity2storm(position=tgt_p['position'])) > 0.00001) or (np.linalg.norm(g_q - unity2storm(orientation=tgt_p['orientation']))>0.0001):
+                g_pos = unity2storm(position=tgt_p['position'])
+                g_q   = unity2storm(orientation=tgt_p['orientation'])
+                
+                mpc_control.update_params(goal_ee_pos=g_pos,
+                                              goal_ee_quat=g_q)
 
-            # Rotation convention taken from here 
-            g_q = R.from_euler('ZXY', storm_frame_orientation, degrees=True).as_quat()
-            storm_q = [g_q[3], g_q[0], g_q[1], g_q[2]]
-            goal_des = np.concatenate((q_des, np.zeros(env.robot_dof)))
-            # mpc_control.update_params(goal_ee_pos=g_pos, goal_ee_quat=g_q)
-            # print("Calling update params once.")
-            mpc_control.update_params(goal_ee_pos=g_pos, goal_ee_quat=storm_q, goal_state = goal_des)
+            #update timestep
             t_step += sim_dt
 
             # print("Input Goal Position:",g_pos)
@@ -196,16 +186,28 @@ def mpc_robot_interactive(args, sim_params):
             # current_robot_state['acceleration'] = copy.deepcopy(qdd_des)
             current_robot_state['acceleration'] = np.zeros(n_dof)
         
-            t_now = time.time()
             command = mpc_control.get_command(t_step, current_robot_state, control_dt=sim_dt, WAIT=False)
             
             filtered_state_mpc = current_robot_state 
+            curr_state = np.hstack((filtered_state_mpc['position'], filtered_state_mpc['velocity'], filtered_state_mpc['acceleration']))
+
+            curr_state_tensor = torch.as_tensor(curr_state, **tensor_args).unsqueeze(0)
+            # get position command:
             q_des = copy.deepcopy(command['position'])
-            qd_des = copy.deepcopy(command['velocity'])
+            qd_des = copy.deepcopy(command['velocity']) #* 0.5
             qdd_des = copy.deepcopy(command['acceleration'])
+            
             ee_error = mpc_control.get_current_error(filtered_state_mpc)
+             
+            pose_state = mpc_control.controller.rollout_fn.get_ee_pose(curr_state_tensor)
 
             # print("ee_error: ",ee_error)
+            print("pose_state (position): ",pose_state['ee_pos_seq'])
+            print("-----------------------------------------------------------------")
+
+            ee_error = mpc_control.get_current_error(filtered_state_mpc)
+             
+            pose_state = mpc_control.controller.rollout_fn.get_ee_pose(curr_state_tensor)
             
             top_trajs = mpc_control.top_trajs.cpu().float()#.numpy()
             n_p, n_t = top_trajs.shape[0], top_trajs.shape[1]
