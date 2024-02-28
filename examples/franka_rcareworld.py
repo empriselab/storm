@@ -71,7 +71,7 @@ np.set_printoptions(precision=2)
 
 def mpc_robot_interactive(args, sim_params):
     vis_ee_target = True
-    robot_file = args.robot + '.yml'
+    robot_file = args.robot + '_rcare.yml'
     task_file = args.robot + '_reacher.yml'
     world_file = 'collision_primitives_3d.yml'
 
