@@ -55,7 +55,7 @@ class RCareStorm(RCareWorld):
             robot_name="franka_panda",
             base_pos=[0, 0, 0],
         )
-
+        self._step()
         print("Initialized RCareStorm object!")
 
         self.stepSeveralSteps(50)
