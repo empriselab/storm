@@ -74,9 +74,11 @@ def mpc_robot_interactive(args, sim_params):
     task_file = args.robot + '_reacher.yml'
     world_file = 'collision_primitives_3d.yml'
 
-    #define transformation frames from Unity to Storm
-    storm2unity_rot = np.array([[0, 0, 1], [-1, 0, 0], [0, 1, 0]])
-    unity2storm_rot = np.linalg.inv(storm2unity_rot)
+    # transformation from Storm to Unity is : rotate -90 deg about x, then mirror img abot xy axis 
+    # (vice versa also works somehow)
+    # TODO Pranav : verify this
+    unity2storm_rot = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
+    storm2unity_rot = np.linalg.inv(unity2storm_rot)
 
     env = RCareStorm()
 
@@ -91,7 +93,7 @@ def mpc_robot_interactive(args, sim_params):
 
     w_T_robot = torch.eye(4)
     quat = torch.tensor([1,0,0,0]).unsqueeze(0)
-    rot = quaternion_to_matrix(quat)
+    rot = quaternion_to_matrix(quat)            #convention of this function is wxyz, check in API for doubts
     w_T_robot[0,3] = 0
     w_T_robot[1,3] = 0
     w_T_robot[2,3] = 0
@@ -113,7 +115,6 @@ def mpc_robot_interactive(args, sim_params):
 
     tgt_p = env.get_target_eef_pose()
     g_pos_ = tgt_p['position']
-    transform = np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])
     g_pos = np.matmul(unity2storm_rot, g_pos_)
 
     # Rajat TODO: Verify rotation convention
@@ -158,28 +159,27 @@ def mpc_robot_interactive(args, sim_params):
     while True:
         try:
             tgt_p = env.get_target_eef_pose()
-            print("Input Euler:",tgt_p['orientation'])
+            # print("Input Euler:",tgt_p['orientation'])
             # g_pos_ = tgt_p['position']
             # transform = np.array([[0, 0, 1], [-1, 0, 0], [0, 1, 0]])
             # transform = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
             g_pos = np.matmul(unity2storm_rot, tgt_p['position'])
+            print(g_pos)
 
-            storm_frame_orientation = [-tgt_p['orientation'][2], tgt_p['orientation'][0], -tgt_p['orientation'][1]]
-            
-            # #trying this for now
-            # storm_frame_orientation = tgt_p['orientation']
+            # Rotations are intrinsic since they are around body axes , so capital letters. 
+            # Source : https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.from_euler.html
 
-            print("Updated Euler:",storm_frame_orientation)
-            g_q = R.from_euler('xyz', storm_frame_orientation, degrees=True).as_quat()
+            # Rotation convention taken from here 
+            g_q = R.from_euler('ZXY', storm_frame_orientation, degrees=True).as_quat()
             storm_q = [g_q[3], g_q[0], g_q[1], g_q[2]]
             goal_des = np.concatenate((q_des, np.zeros(env.robot_dof)))
             # mpc_control.update_params(goal_ee_pos=g_pos, goal_ee_quat=g_q)
-            print("Calling update params once.")
+            # print("Calling update params once.")
             mpc_control.update_params(goal_ee_pos=g_pos, goal_ee_quat=storm_q, goal_state = goal_des)
             t_step += sim_dt
 
-            print("Input Goal Position:",g_pos)
-            print("Input Goal Orientation:",storm_q)
+            # print("Input Goal Position:",g_pos)
+            # print("Input Goal Orientation:",storm_q)
             
             q_des = (np.radians(np.array(env.get_robot_joint_positions()) % 360.))
             qd_des = (np.radians(np.array(env.get_robot_joint_velocities()) % 360.))
@@ -205,7 +205,7 @@ def mpc_robot_interactive(args, sim_params):
             qdd_des = copy.deepcopy(command['acceleration'])
             ee_error = mpc_control.get_current_error(filtered_state_mpc)
 
-            print("ee_error: ",ee_error)
+            # print("ee_error: ",ee_error)
             
             top_trajs = mpc_control.top_trajs.cpu().float()#.numpy()
             n_p, n_t = top_trajs.shape[0], top_trajs.shape[1]
@@ -216,7 +216,8 @@ def mpc_robot_interactive(args, sim_params):
             q_des = np.degrees((q_des + 2*np.pi) % (2*np.pi))
            
             t_now = time.time()
-            env.set_robot_joint_position(joint_positions=q_des)
+            # env.set_robot_joint_position(joint_positions=q_des)
+            env.step()
 
             current_state = command
             # i += 1
