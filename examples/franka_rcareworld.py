@@ -71,8 +71,8 @@ np.set_printoptions(precision=2)
 
 def mpc_robot_interactive(args, sim_params):
     vis_ee_target = True
-    robot_file = args.robot + '_rcare.yml'
-    task_file = args.robot + '_reacher.yml'
+    robot_file = args.robot + '.yml'
+    task_file = args.robot + '_rcare_reacher.yml'
     world_file = 'collision_primitives_3d.yml'
 
     env = RCareStorm()
@@ -155,6 +155,7 @@ def mpc_robot_interactive(args, sim_params):
             
             #Find goal position
             tgt_p = env.get_target_eef_pose()
+            # print(tgt_p)
 
             #update goal position only if it has moved more than a threshold
             #Pranav TODO : check thresholds
@@ -164,7 +165,7 @@ def mpc_robot_interactive(args, sim_params):
                 
                 mpc_control.update_params(goal_ee_pos=g_pos,
                                               goal_ee_quat=g_q)
-
+    
             #update timestep
             t_step += sim_dt
 
@@ -201,14 +202,8 @@ def mpc_robot_interactive(args, sim_params):
              
             pose_state = mpc_control.controller.rollout_fn.get_ee_pose(curr_state_tensor)
 
-            # print("ee_error: ",ee_error)
-            print("pose_state (position): ",pose_state['ee_pos_seq'])
-            print("-----------------------------------------------------------------")
+            print("ee_error: ",ee_error)
 
-            ee_error = mpc_control.get_current_error(filtered_state_mpc)
-             
-            pose_state = mpc_control.controller.rollout_fn.get_ee_pose(curr_state_tensor)
-            
             top_trajs = mpc_control.top_trajs.cpu().float()#.numpy()
             n_p, n_t = top_trajs.shape[0], top_trajs.shape[1]
             w_pts = w_robot_coord.transform_point(top_trajs.view(n_p * n_t, 3)).view(n_p, n_t, 3)
