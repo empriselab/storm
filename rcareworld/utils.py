@@ -21,9 +21,8 @@ def unity2storm(position=None, orientation=None):
         # Rotation convention taken from here:
         # https://docs.unity3d.com/ScriptReference/Transform-eulerAngles.html 
 
-        orientation[0] = -1 * orientation[0]
-        orientation[1] = -1 * orientation[1]
-
+        orientation[2] = -1 * orientation[2]
+        
         # print(R.from_euler('ZXY', orientation, degrees=True).as_matrix())
         q = Quaternion(matrix=R.from_euler('ZXY', orientation, degrees=True).as_matrix())
 
@@ -61,8 +60,7 @@ def storm2unity(position=None, orientation=None):
         # Rotation convention taken from here:
         # https://docs.unity3d.com/ScriptReference/Transform-eulerAngles.html 
 
-        orientation[0] = -1 * orientation[0]
-        orientation[1] = -1 * orientation[1]
+        orientation[2] = -1 * orientation[2]
 
         q = Quaternion(matrix=R.from_euler('ZXY', orientation, degrees=True).as_matrix())
 
