@@ -58,6 +58,8 @@ class RCareStorm(RCareWorld):
         self._step()
         print("Initialized RCareStorm object!")
 
+        # print(robot.getRobotState())
+
         self.stepSeveralSteps(50)
 
         self.instance_channel.set_action(
@@ -67,7 +69,6 @@ class RCareStorm(RCareWorld):
             duration=0,
             speed_based=False,
         )
-
         print("Moved robot to reference cube!")
 
     def get_robot_joint_positions(self):
