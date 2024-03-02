@@ -148,6 +148,8 @@ def mpc_robot_interactive(args, sim_params):
     qdd_des = np.array([0,0,0,0,0,0,1])
     # env.set_robot_joint_position(joint_positions=(np.array([-0.9693274502997367, 0.9422471412712752, 0.7439066754002944, 1.019769135341833, 1.672839590475963, -1.3861354591630555])*180/np.pi))
 
+    ii = 0
+
     while True:
         try:
             #Step the environment
@@ -201,8 +203,11 @@ def mpc_robot_interactive(args, sim_params):
              
             pose_state = mpc_control.controller.rollout_fn.get_ee_pose(curr_state_tensor)
 
-            print("Target eef :",g_pos)
-            print("Pose eef :",pose_state["ee_pos_seq"])
+            print(ii)
+            print("Target eef posn:",g_pos)
+            print("Target eef orn:",g_q)
+            print("Curr eef posn:",pose_state["ee_pos_seq"])
+            print("Curr eef orn :",pose_state["ee_quat_seq"])
             print("--------------------------------------------------------")
             print("ee_error: ",ee_error)
             print("--------------------------------------------------------")
@@ -216,11 +221,12 @@ def mpc_robot_interactive(args, sim_params):
             q_des = np.degrees((q_des + 2*np.pi) % (2*np.pi))
            
             t_now = time.time()
-            env.set_robot_joint_position(joint_positions=q_des)
+            if(ii > 100):
+               env.set_robot_joint_position(joint_positions=q_des)
             env.step()
 
             current_state = command
-            # i += 1
+            ii += 1
         except KeyboardInterrupt:
             print('Closing')
 
