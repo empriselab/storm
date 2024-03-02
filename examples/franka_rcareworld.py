@@ -151,7 +151,6 @@ def mpc_robot_interactive(args, sim_params):
     while True:
         try:
             #Step the environment
-            env.step()
             
             #Find goal position
             tgt_p = env.get_target_eef_pose()
@@ -213,7 +212,7 @@ def mpc_robot_interactive(args, sim_params):
             q_des = np.degrees((q_des + 2*np.pi) % (2*np.pi))
            
             t_now = time.time()
-            # env.set_robot_joint_position(joint_positions=q_des)
+            env.set_robot_joint_position(joint_positions=q_des)
             env.step()
 
             current_state = command
