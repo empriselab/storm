@@ -201,7 +201,11 @@ def mpc_robot_interactive(args, sim_params):
              
             pose_state = mpc_control.controller.rollout_fn.get_ee_pose(curr_state_tensor)
 
+            print("Target eef :",g_pos)
+            print("Pose eef :",pose_state["ee_pos_seq"])
+            print("--------------------------------------------------------")
             print("ee_error: ",ee_error)
+            print("--------------------------------------------------------")
 
             top_trajs = mpc_control.top_trajs.cpu().float()#.numpy()
             n_p, n_t = top_trajs.shape[0], top_trajs.shape[1]
