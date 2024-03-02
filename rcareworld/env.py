@@ -107,8 +107,6 @@ class RCareStorm(RCareWorld):
                     joint_accelerations=list(joint_accelerations[0:self.robot_dof]),
                 )
 
-        self._step()
-    
     def set_eef_pose(self, pos: list, rot: list):
         q = self.robot.ik_controller.calculate_ik_recursive(pos, eef_orn=p.getQuaternionFromEuler(rot))
         self.set_robot_joints(joint_positions=joint_positions)
