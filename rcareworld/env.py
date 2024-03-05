@@ -53,19 +53,27 @@ class RCareStorm(RCareWorld):
             id=robot_id, 
             gripper_list=["6397870"], 
             robot_name="franka_panda",
-            base_pos=[0, 0, 0],
+            base_pos=[0, 0, 0]
         )
         self._step()
         print("Initialized RCareStorm object!")
 
         # print(robot.getRobotState())
 
-        self.stepSeveralSteps(50)
+        # self.stepSeveralSteps(50)
 
         self.instance_channel.set_action(
             "IKTargetDoMove",
             id=639787,
             position=cube_ref_pose,
+            duration=0,
+            speed_based=False,
+        )
+        print("Moved robot to reference cube!")
+        self.instance_channel.set_action(
+            "IKTargetDoRotate",
+            id=639787,
+            vector3=[0, 0, 0],
             duration=0,
             speed_based=False,
         )
@@ -87,6 +95,8 @@ class RCareStorm(RCareWorld):
         return target_pose
         
     def set_robot_joint_position(self, joint_positions=None, joint_velocities=None, joint_accelerations=None):
+        
+        print("Setting Joint: ", joint_positions)
         if joint_positions is not None:
             self.instance_channel.set_action(
                 'SetJointPositionDirectly',
