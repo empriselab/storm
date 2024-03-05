@@ -207,18 +207,18 @@ def mpc_robot_interactive(args, sim_params):
              
             pose_state = mpc_control.controller.rollout_fn.get_ee_pose(curr_state_tensor)
 
-            # print(ii)
-            # print("Target eef posn:",g_pos)
-            # print("Target eef orn:",g_q)
-            # print("Curr eef posn:",pose_state["ee_pos_seq"])
-            # print("Curr eef orn :",pose_state["ee_quat_seq"])
-            # print("--------------------------------------------------------")
-            # print("ee_error: ",ee_error)
-            # print("--------------------------------------------------------")
-
-            # print(np.degrees(q_des))
-            print(np.radians(env.get_robot_joint_positions()))
+            print(ii)
+            print("Target eef posn:",g_pos)
+            print("Target eef orn:",g_q)
+            print("Curr eef posn:",pose_state["ee_pos_seq"])
+            print("Curr eef orn :",pose_state["ee_quat_seq"])
             print("--------------------------------------------------------")
+            print("ee_error: ",ee_error)
+            print("--------------------------------------------------------")
+
+            # # print(np.degrees(q_des))
+            # print(np.radians(env.get_robot_joint_positions()))
+            # print("--------------------------------------------------------")
 
             top_trajs = mpc_control.top_trajs.cpu().float()#.numpy()
             n_p, n_t = top_trajs.shape[0], top_trajs.shape[1]
