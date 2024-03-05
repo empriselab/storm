@@ -41,7 +41,7 @@ class RCareStorm(RCareWorld):
         cube_3.setTransform(position=[ 0. , -0.1,  0. ],scale=[2.0, 0.2, 2.0])
 
         #define pose of reference cube
-        cube_ref_pose = [0.3, 0.5, 0.0]
+        cube_ref_pose = [-0.3, 0.5, 0.0]
 
         cube_ref = self.create_object(id=30001, name="Cube", is_in_scene=False)
         cube_ref.load()
