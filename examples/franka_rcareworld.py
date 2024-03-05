@@ -136,7 +136,6 @@ def mpc_robot_interactive(args, sim_params):
     log_traj = {'q':[], 'q_des':[], 'qdd_des':[], 'qd_des':[],
                 'qddd_des':[]}
 
-    q_des = np.array(env.get_robot_joint_positions())
     qd_des = np.zeros(env.robot_dof)
     t_step = 0
 
@@ -153,6 +152,11 @@ def mpc_robot_interactive(args, sim_params):
     while True:
         try:
             #Step the environment
+
+            # if(ii > 230):
+            #     env.set_robot_joint_position(joint_positions=q_des)
+            #     env.step()
+            #     continue
             
             #Find goal position
             tgt_p = env.get_target_eef_pose()
@@ -179,7 +183,7 @@ def mpc_robot_interactive(args, sim_params):
             # qd_des = np.array(env._get_kinova_joint_vel(315892))
             for i in range(7):
                 if q_des[i] > np.pi:
-                    q_des[i] = q_des[i] - (2 * np.pi)
+                    q_des[i] = q_des[i] - (2 * np.pi) # -pi, pi
             
             current_robot_state = {}
            
@@ -203,13 +207,17 @@ def mpc_robot_interactive(args, sim_params):
              
             pose_state = mpc_control.controller.rollout_fn.get_ee_pose(curr_state_tensor)
 
-            print(ii)
-            print("Target eef posn:",g_pos)
-            print("Target eef orn:",g_q)
-            print("Curr eef posn:",pose_state["ee_pos_seq"])
-            print("Curr eef orn :",pose_state["ee_quat_seq"])
-            print("--------------------------------------------------------")
-            print("ee_error: ",ee_error)
+            # print(ii)
+            # print("Target eef posn:",g_pos)
+            # print("Target eef orn:",g_q)
+            # print("Curr eef posn:",pose_state["ee_pos_seq"])
+            # print("Curr eef orn :",pose_state["ee_quat_seq"])
+            # print("--------------------------------------------------------")
+            # print("ee_error: ",ee_error)
+            # print("--------------------------------------------------------")
+
+            # print(np.degrees(q_des))
+            print(np.radians(env.get_robot_joint_positions()))
             print("--------------------------------------------------------")
 
             top_trajs = mpc_control.top_trajs.cpu().float()#.numpy()
@@ -218,10 +226,10 @@ def mpc_robot_interactive(args, sim_params):
             top_trajs = w_pts.cpu().numpy()
             color = np.array([0.0, 1.0, 0.0, 1.0])
             
-            q_des = np.degrees((q_des + 2*np.pi) % (2*np.pi))
+            q_des = np.degrees(q_des)
            
             t_now = time.time()
-            if(ii > 100):
+            if(ii > 200):
                env.set_robot_joint_position(joint_positions=q_des)
             env.step()
 
