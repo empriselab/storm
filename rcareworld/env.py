@@ -96,7 +96,6 @@ class RCareStorm(RCareWorld):
         
     def set_robot_joint_position(self, joint_positions=None, joint_velocities=None, joint_accelerations=None):
         
-        print("Setting Joint: ", joint_positions)
         if joint_positions is not None:
             self.instance_channel.set_action(
                 'SetJointPositionDirectly',
