@@ -97,15 +97,7 @@ def mpc_robot_interactive(args, sim_params):
     # get camera data:
     mpc_control = ReacherTask(task_file, robot_file, world_file, tensor_args)
     n_dof = mpc_control.controller.rollout_fn.dynamics_model.n_dofs
-    start_qdd = torch.zeros(n_dof, **tensor_args)
-
-    # update goal:
-
-    exp_params = mpc_control.exp_params
     
-    ee_list = []
-    
-
     mpc_tensor_dtype = {'device':device, 'dtype':torch.float32}
 
     tgt_p = env.get_target_eef_pose()
@@ -115,8 +107,7 @@ def mpc_robot_interactive(args, sim_params):
     mpc_control.update_params(goal_ee_pos=g_pos, goal_ee_quat=g_q)
 
     n_dof = mpc_control.controller.rollout_fn.dynamics_model.n_dofs
-    prev_acc = np.zeros(n_dof)
-
+    
     rollout = mpc_control.controller.rollout_fn
     tensor_args = mpc_tensor_dtype
     sim_dt = mpc_control.exp_params['control_dt']
@@ -132,16 +123,14 @@ def mpc_robot_interactive(args, sim_params):
 
     t_now = time.time()
 
-    qdd_des = np.array([0,0,0,0,0,0,1])
+    qdd_des = np.array([0,0,0,0,0,0,0])
     # env.set_robot_joint_position(joint_positions=(np.array([-0.9693274502997367, 0.9422471412712752, 0.7439066754002944, 1.019769135341833, 1.672839590475963, -1.3861354591630555])*180/np.pi))
 
     ii = 0
-    time.sleep(2)
+    time.sleep(5)
 
     while True:
         try:
-            #Step the environment
-
             # if(ii > 230):
             #     env.set_robot_joint_position(joint_positions=q_des)
             #     env.step()
@@ -152,7 +141,6 @@ def mpc_robot_interactive(args, sim_params):
             # print(tgt_p)
 
             #update goal position only if it has moved more than a threshold
-            #Pranav TODO : check thresholds
             if(np.linalg.norm(g_pos - unity2storm(position=tgt_p['position'])) > 0.00001) or (np.linalg.norm(g_q - unity2storm(orientation=tgt_p['orientation']))>0.0001):
                 g_pos = unity2storm(position=tgt_p['position'])
                 g_q   = unity2storm(orientation=tgt_p['orientation'])
@@ -168,8 +156,6 @@ def mpc_robot_interactive(args, sim_params):
             
             q_des = (np.radians(np.array(env.get_robot_joint_positions()) % 360.))
             qd_des = (np.radians(np.array(env.get_robot_joint_velocities()) % 360.))
-            # qdd_des = np.array(env.get_robot_joint_accelerations()) % (2*np.pi)
-            # qd_des = np.array(env._get_kinova_joint_vel(315892))
             for i in range(7):
                 if q_des[i] > np.pi:
                     q_des[i] = q_des[i] - (2 * np.pi) # -pi, pi
