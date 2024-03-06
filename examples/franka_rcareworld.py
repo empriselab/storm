@@ -65,7 +65,7 @@ from storm_kit.mpc.task.reacher_task import ReacherTask
 from scipy.spatial.transform import Rotation as R
 
 from rcareworld.env import RCareStorm
-from rcareworld.utils import storm2unity, unity2storm
+from rcareworld.utils import unity2storm
 
 np.set_printoptions(precision=2)
 
@@ -73,7 +73,8 @@ def mpc_robot_interactive(args, sim_params):
     vis_ee_target = True
     robot_file = args.robot + '.yml'
     task_file = args.robot + '_rcare_reacher.yml'
-    world_file = 'collision_primitives_3d.yml'
+    # world_file = 'collision_primitives_3d.yml'            #run to replicate isaac sim model
+    world_file = 'collision_empty.yml'
 
     env = RCareStorm()
 

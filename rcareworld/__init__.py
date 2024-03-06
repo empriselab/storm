@@ -22,4 +22,4 @@
 # DEALINGS IN THE SOFTWARE.#
 
 from rcareworld.env import RCareStorm
-from rcareworld.utils import storm2unity, unity2storm
+from rcareworld.utils import unity2storm
