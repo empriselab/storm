@@ -51,6 +51,10 @@ import matplotlib.pyplot as plt
 
 from quaternion import from_euler_angles, as_float_array, as_rotation_matrix, from_float_array, as_quat_array
 
+from colorama import init as colorama_init
+from colorama import Fore
+from colorama import Style
+
 # from storm_kit.gym.core import Gym, World
 # from storm_kit.gym.sim_robot import RobotSim
 # from storm_kit.util_file import get_configs_path, get_gym_configs_path, join_path, load_yaml, get_assets_path
@@ -70,6 +74,9 @@ from rcareworld.utils import unity2storm
 np.set_printoptions(precision=2)
 
 def mpc_robot_interactive(args, sim_params):
+
+    colorama_init()
+
     vis_ee_target = True
     robot_file = args.robot + '.yml'
     task_file = args.robot + '_rcare_reacher.yml'
@@ -149,6 +156,7 @@ def mpc_robot_interactive(args, sim_params):
     # env.set_robot_joint_position(joint_positions=(np.array([-0.9693274502997367, 0.9422471412712752, 0.7439066754002944, 1.019769135341833, 1.672839590475963, -1.3861354591630555])*180/np.pi))
 
     ii = 0
+    time.sleep(2)
 
     while True:
         try:
@@ -208,14 +216,24 @@ def mpc_robot_interactive(args, sim_params):
              
             pose_state = mpc_control.controller.rollout_fn.get_ee_pose(curr_state_tensor)
 
-            print(ii)
-            print("Target eef posn:",g_pos)
-            print("Target eef orn:",g_q)
-            print("Curr eef posn:",pose_state["ee_pos_seq"])
-            print("Curr eef orn :",pose_state["ee_quat_seq"])
-            print("--------------------------------------------------------")
-            print("ee_error: ",ee_error)
-            print("--------------------------------------------------------")
+            if (ii > 200) :
+                print(ii)
+                print(f"{Fore.CYAN}Target eef posn:",g_pos)
+                print(f"Target eef orn:",g_q)
+                print(f"Curr eef posn:",pose_state["ee_pos_seq"])
+                print(f"Curr eef orn :",pose_state["ee_quat_seq"])
+                print(f"--------------------------------------------------------")
+                print(f"ee_error: ",ee_error)
+                print(f"--------------------------------------------------------")
+            else:
+                print(ii)
+                print("Target eef posn:",g_pos)
+                print("Target eef orn:",g_q)
+                print("Curr eef posn:",pose_state["ee_pos_seq"])
+                print("Curr eef orn :",pose_state["ee_quat_seq"])
+                print("--------------------------------------------------------")
+                print("ee_error: ",ee_error)
+                print("--------------------------------------------------------")
 
             # # print(np.degrees(q_des))
             # print(np.radians(env.get_robot_joint_positions()))
