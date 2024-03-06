@@ -94,14 +94,6 @@ def mpc_robot_interactive(args, sim_params):
 
     tensor_args = {'device':device, 'dtype':torch.float32}
 
-    w_T_robot = torch.eye(4)
-    quat = torch.tensor([1,0,0,0]).unsqueeze(0)
-    rot = quaternion_to_matrix(quat)            #convention of this function is wxyz, check in API for doubts
-    w_T_robot[0,3] = 0
-    w_T_robot[1,3] = 0
-    w_T_robot[2,3] = 0
-    w_T_robot[:3,:3] = rot[0]
-
     # get camera data:
     mpc_control = ReacherTask(task_file, robot_file, world_file, tensor_args)
     n_dof = mpc_control.controller.rollout_fn.dynamics_model.n_dofs
@@ -120,22 +112,10 @@ def mpc_robot_interactive(args, sim_params):
     g_pos = unity2storm(position=tgt_p['position'])
     g_q    = unity2storm(orientation=tgt_p['orientation']) 
     
-    ee_error = 10.0
-    j = 0
-    t_step = 0
-    i = 0
-    
     mpc_control.update_params(goal_ee_pos=g_pos, goal_ee_quat=g_q)
-
-    g_pos = np.ravel(mpc_control.controller.rollout_fn.goal_ee_pos.cpu().numpy())
-    
-    g_q = np.ravel(mpc_control.controller.rollout_fn.goal_ee_quat.cpu().numpy())
 
     n_dof = mpc_control.controller.rollout_fn.dynamics_model.n_dofs
     prev_acc = np.zeros(n_dof)
-    
-    w_robot_coord = CoordinateTransform(trans=w_T_robot[0:3,3].unsqueeze(0),
-                                        rot=w_T_robot[0:3,0:3].unsqueeze(0))
 
     rollout = mpc_control.controller.rollout_fn
     tensor_args = mpc_tensor_dtype
@@ -239,12 +219,6 @@ def mpc_robot_interactive(args, sim_params):
             # print(np.radians(env.get_robot_joint_positions()))
             # print("--------------------------------------------------------")
 
-            top_trajs = mpc_control.top_trajs.cpu().float()#.numpy()
-            n_p, n_t = top_trajs.shape[0], top_trajs.shape[1]
-            w_pts = w_robot_coord.transform_point(top_trajs.view(n_p * n_t, 3)).view(n_p, n_t, 3)
-            top_trajs = w_pts.cpu().numpy()
-            color = np.array([0.0, 1.0, 0.0, 1.0])
-            
             q_des = np.degrees(q_des)
            
             t_now = time.time()
