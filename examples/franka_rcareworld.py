@@ -73,7 +73,7 @@ def mpc_robot_interactive(args, sim_params):
     vis_ee_target = True
     robot_file = args.robot + '.yml'
     task_file = args.robot + '_rcare_reacher.yml'
-    # world_file = 'collision_primitives_3d.yml'            #run to replicate isaac sim model
+    # world_file = 'collision_primitives_3d.yml'               # use when replicating isaac sim env
     world_file = 'collision_empty.yml'
 
     env = RCareStorm()

@@ -25,16 +25,18 @@ class RCareStorm(RCareWorld):
         self.robot_id = 639787
         self.robot_dof = 7
 
-        sphere_1 = self.create_object(id=10001, name="Sphere", is_in_scene=True)
-        sphere_1.setTransform(position=[0.4, 0.1, 0.4],scale=[0.2, 0.2, 0.2])
+        # uncomment below lines to recreate isaac sim environment
 
-        cube_1 = self.create_object(id=20001, name="Cube", is_in_scene=False)
-        cube_1.load()
-        cube_1.setTransform(position=[0.4, 0.2, 0.2],scale=[0.3, 0.4, 0.1])
+        # sphere_1 = self.create_object(id=10001, name="Sphere", is_in_scene=True)
+        # sphere_1.setTransform(position=[0.4, 0.1, 0.4],scale=[0.2, 0.2, 0.2])
 
-        cube_2 = self.create_object(id=20002, name="Cube", is_in_scene=False)
-        cube_2.load()
-        cube_2.setTransform(position=[ 0.4,  0.2, -0.3],scale=[0.3, 0.5, 0.1])
+        # cube_1 = self.create_object(id=20001, name="Cube", is_in_scene=False)
+        # cube_1.load()
+        # cube_1.setTransform(position=[0.4, 0.2, 0.2],scale=[0.3, 0.4, 0.1])
+
+        # cube_2 = self.create_object(id=20002, name="Cube", is_in_scene=False)
+        # cube_2.load()
+        # cube_2.setTransform(position=[ 0.4,  0.2, -0.3],scale=[0.3, 0.5, 0.1])
 
         cube_3 = self.create_object(id=20003, name="Cube", is_in_scene=False)
         cube_3.load()
