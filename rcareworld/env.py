@@ -77,7 +77,7 @@ class RCareStorm(RCareWorld):
             duration=0,
             speed_based=False,
         )
-        print("Moved robot to reference cube!")
+        print("Rotated robot to reference cube!")
 
     def get_robot_joint_positions(self):
         return self.instance_channel.data[self.robot_id]['joint_positions']
